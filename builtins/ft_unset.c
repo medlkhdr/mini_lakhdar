@@ -1,56 +1,70 @@
+/* ************************************************************************** */
+/*                                                                            */
+/*                                                        :::      ::::::::   */
+/*   ft_unset.c                                         :+:      :+:    :+:   */
+/*                                                    +:+ +:+         +:+     */
+/*   By: med <med@student.42.fr>                    +#+  +:+       +#+        */
+/*                                                +#+#+#+#+#+   +#+           */
+/*   Created: 2025/06/28 20:08:44 by mohabid           #+#    #+#             */
+/*   Updated: 2025/07/06 11:35:58 by med              ###   ########.fr       */
+/*                                                                            */
+/* ************************************************************************** */
+
 #include "../minishell.h"
 
-static int	is_valid_identifier(const char *str)
+static void	free_node(t_env *node)
 {
-	int	i = 0;
-
-	if (!str || !(ft_isalpha(str[0]) || str[0] == '_'))
-		return (0);
-	while (str[i])
-	{
-		if (!(ft_isalnum(str[i]) || str[i] == '_'))
-			return (0);
-		i++;
-	}
-	return (1);
+	free(node->key);
+	if (node->value)
+		free(node->value);
+	free(node);
 }
 
-void	remove_env_node(t_env **env, const char *key)
+static int del_arg(t_env **head, char *key)
 {
-	t_env	*prev = NULL;
-	t_env	*curr = *env;
-
+	t_env	*curr;
+	t_env	*previous;
+	
+	curr = *head;
+	previous = NULL;
+	if (head == NULL || *head == NULL || !key)
+		return (0);
 	while (curr)
 	{
-		if (strcmp(curr->key, key) == 0)
+		if (ft_strcmp(key, curr->key) == 0)
 		{
-			if (prev)
-				prev->next = curr->next;
+			if (previous)
+				previous->next = curr->next;
 			else
-				*env = curr->next;
-
-			free(curr->key);
-			free(curr->value);
-			free(curr);
-			return;
+				*head = (*head)->next;
+			free_node(curr);
+			return (1);
 		}
-		prev = curr;
+		previous = curr;
 		curr = curr->next;
 	}
+	return (0);
 }
 
 int	ft_unset(t_cmd *cmd)
 {
-	t_env	**env = cmd->env;
-	char	**args = cmd->args;
-	int		i = 1;
+	int		i;
+	int		ac;
 
-	while (args[i])
+	if (!cmd || !cmd->env || !(*cmd->env))
+		return (1);
+	ac = arg_count(cmd->args);
+	if (ac == 1)
+		return (0);
+	i = 1;
+	while (cmd->args[i])
 	{
-		if (!is_valid_identifier(args[i]))
-			ft_printf(STDERR_FILENO, "bash: unset: `%s`: not a valid identifier\n", args[i]);
-		else
-			remove_env_node(env, args[i]);
+		if (!is_valid_identifier(cmd->args[i]))
+		{
+			ft_printf(2, "bash: unset `%s\': not a valid identifier\n", cmd->args[i]);
+			return (1);
+		}
+		del_arg(cmd->env, cmd->args[i]);
 		i++;
 	}
 	return (0);

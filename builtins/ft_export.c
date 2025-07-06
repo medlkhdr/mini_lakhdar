@@ -3,134 +3,88 @@
 /*                                                        :::      ::::::::   */
 /*   ft_export.c                                        :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: mlakhdar <mlakhdar@student.42.fr>          +#+  +:+       +#+        */
+/*   By: med <med@student.42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/26 19:54:21 by med               #+#    #+#             */
-/*   Updated: 2025/07/03 16:33:53 by mlakhdar         ###   ########.fr       */
+/*   Updated: 2025/07/06 11:20:10 by med              ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "../minishell.h"
 
-int	is_valid_identifier(const char *str)
+static void	swap_env_nodes(t_env *a, t_env *b)
 {
-	int	i = 0;
-
-	if (!str || !(ft_isalpha(str[0]) || str[0] == '_'))
-		return (0);
-	while (str[i] && str[i] != '=')
-	{
-		if (!(ft_isalnum(str[i]) || str[i] == '_'))
-			return (0);
-		i++;
-	}
-	return (1);
+	char *tmp_key;
+	char *tmp_value;
+	
+	tmp_key = a->key;
+	tmp_value = a->value;
+	a->key = b->key;
+	a->value = b->value;
+	b->key = tmp_key;
+	b->value = tmp_value;
 }
 
-char	*get_key(const char *arg)
+static void	sort_list(t_env *head)
 {
-	int		len = 0;
-
-	while (arg[len] && arg[len] != '=')
-		len++;
-	return (ft_substr(arg, 0, len));
-}
-
-char	*get_value(const char *arg)
-{
-	char	*equal = ft_strchr(arg, '=');
-	if (!equal)
-		return (NULL);
-	return (ft_strdup(equal + 1));
-}
-
-void	insert_sorted(t_env **env, t_env *new_node)
-{
-	t_env	*prev = NULL;
-	t_env	*curr = *env;
-
-	while (curr && ft_strcmp(curr->key, new_node->key) < 0)
-	{
-		prev = curr;
-		curr = curr->next;
-	}
-	if (prev == NULL)
-	{
-		new_node->next = *env;
-		*env = new_node;
-	}
-	else
-	{
-		prev->next = new_node;
-		new_node->next = curr;
-	}
-}
-
-void	add_or_update_env(t_env **env, char *arg)
-{
-	char	*key = get_key(arg);
-	char	*value = get_value(arg);
-	t_env	*curr = *env;
-
+	t_env *curr;
+	t_env *curr2;
+	
+	curr = head;
 	while (curr)
 	{
-		if (ft_strcmp(curr->key, key) == 0)
+		curr2 = curr->next;
+		while (curr2)
 		{
-			if (value)
-			{
-				free(curr->value);
-				curr->value = value;
-			}
-			free(key);
-			return;
+			if (ft_strcmp(curr->key, curr2->key) > 0)
+				swap_env_nodes(curr, curr2);
+			curr2 = curr2->next;
 		}
 		curr = curr->next;
 	}
-	t_env *new_node = malloc(sizeof(t_env));
-	new_node->key = key;
-	new_node->value = value ? value : ft_strdup("");
-	new_node->next = NULL;
-	insert_sorted(env, new_node);
 }
 
-void	add_update(t_cmd **cmd)
+static void	add_export_arg(t_env **env, char *arg)
 {
-	t_env *env = *(*cmd)->env;
-	char **args = (*cmd)->args;
-	int i = 1;
-
-	while (args[i])
+	if (!is_valid_identifier(arg))
 	{
-		if (!is_valid_identifier(args[i]))
-		{
-			ft_printf(STDERR_FILENO, "bash: export: `%s`: not a valid identifier\n", args[i]);
-		}
-		else
-		{
-			add_or_update_env(&env, args[i]);
-		}
+		ft_printf(STDERR_FILENO, "minishell: export: `%s`: not a valid identifier\n", arg);
+		return ;
+	}
+	addback_node(env, arg);
+	sort_list(*env);
+}
+
+static void	export_with_args(t_cmd *cmd)
+{
+	int i = 1;
+	while (cmd->args[i])
+	{
+		add_export_arg(cmd->env, cmd->args[i]);
 		i++;
 	}
-	*(*cmd)->env = env;
 }
 
 int	ft_export(t_cmd *cmd)
 {
-	int ac = count_word(cmd->args);
-	t_env *curr = *cmd->env;
+	t_env *curr;
 
-	if (ac == 1)
+	if (!cmd || !cmd->env || !(*cmd->env))
+		return (1);
+	if (arg_count(cmd->args) == 1)
 	{
+		sort_list(*cmd->env);
+		curr = *cmd->env;
 		while (curr)
 		{
-			ft_printf(STDOUT_FILENO, "declare -x %s", curr->key);
+			printf("declare -x %s", curr->key);
 			if (curr->value)
-				ft_printf(STDOUT_FILENO, "=\"%s\"", curr->value);
-			ft_printf(STDOUT_FILENO, "\n");
+				printf("=\"%s\"", curr->value);
+			printf("\n");
 			curr = curr->next;
 		}
 	}
 	else
-		add_update(&cmd);
+		export_with_args(cmd);
 	return (0);
 }

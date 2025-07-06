@@ -1,6 +1,6 @@
 #include "../minishell.h"
 
-t_lst_cmd *parsing(char *input , t_env *env , int *g_exit_status)
+t_lst_cmd *parsing(char *input , t_env *env , int *g_es)
 {
 	t_lst_hk	*x;
 	t_lst_token	*lst_token;
@@ -14,12 +14,12 @@ t_lst_cmd *parsing(char *input , t_env *env , int *g_exit_status)
 	lst_token = tokenizer(input, x);
 	if ((!lst_token || !lst_token->head) || syntax_analyser(lst_token) == 2)
 	{
-		*g_exit_status = 2;
+		*g_es = 2;
 		free_all(x);
 		return (NULL);
 	}
-	expander(lst_token, x ,env, *g_exit_status);
-	lst = fill_struct(lst_token, x ,env,  g_exit_status);
+	expander(lst_token, x ,env, *g_es);
+	lst = fill_struct(lst_token, x ,env);
 	lst->k = x;
 	return (lst);
 }

@@ -12,15 +12,6 @@
 
 #include "../minishell.h"
 
-static int	arg_count(char **av)
-{
-	int	count;
-
-	count = 0;
-	while (NULL != av[count])
-		count++;
-	return (count);
-}
 int check(char *str)
 {
 	int i;
@@ -37,26 +28,26 @@ int check(char *str)
 	return 0;
 }
 
-int	ft_echo(char **av)
+int	ft_echo(t_cmd *cmd)
 {
 	int	i;
 	int	option;
 
 	i = 1;
 	option = 0;
-	if (arg_count(av) == 1)
+	if (arg_count(cmd->args) == 1)
 		return (ft_printf(STDOUT_FILENO, "\n"));
-	if (arg_count(av) > 1)
+	if (arg_count(cmd->args) > 1)
 	{
-		while (ft_strcmp(av[i], "-n") == 0 || check(av[i]))
+		while (ft_strcmp(cmd->args[i], "-n") == 0 || check(cmd->args[i]))
 		{
 			option = 1;
 			i++;
 		}
-		while (av[i] != NULL)
+		while (cmd->args[i] != NULL)
 		{
-			ft_printf(STDOUT_FILENO, "%s", av[i]);
-			if (av[i + 1] != NULL)
+			ft_printf(STDOUT_FILENO, "%s", cmd->args[i]);
+			if (cmd->args[i + 1] != NULL)
 				ft_printf(STDOUT_FILENO, " ");
 			i++;
 		}

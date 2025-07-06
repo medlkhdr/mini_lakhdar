@@ -9,8 +9,9 @@ D_TOK = lexical_analyser
 D_SYN = syntax_error 
 
 SRCS = main.c \
-			utiles/track_alloc_free.c \
-			utiles/tools.c \
+			utiles_lkhdr/track_alloc_free.c \
+			utiles_lkhdr/tools.c \
+			parsing/parsing.c\
 			lexical_analyser/main_token.c \
 			syntax_analyser/syntax_analyser.c \
 			expanding_variables/expander.c  \
@@ -18,17 +19,21 @@ SRCS = main.c \
 			syntax_analyser/sa_helper.c \
 			expanding_variables/expander_helper.c \
 			fin_parse/filling.c \
-			builtins/dup.c  \
+			utiles_simo/get_env.c \
+			utiles_simo/free_list.c \
+			utiles_simo/cd_utils.c\
+			utiles_simo/execute_builtin.c \
+			utiles_simo/env_tochar.c\
 			builtins/ft_cd.c \
-			builtins/ft_echo.c \
-			builtins/ft_env.c  \
-			builtins/ft_export.c \
-			builtins/ft_exit.c  \
+			builtins/ft_env.c \
 			builtins/ft_pwd.c \
-			parsing/parsing.c \
-			get_env/get_env.c \
+			builtins/ft_exit.c \
+			builtins/ft_echo.c \
+			builtins/ft_export.c \
 			builtins/ft_unset.c \
-			execution/execution.c \
+			exec/execute_command.c \
+			exec/red.c \
+			exec/fork_process.c
 			
 OBJS = $(SRCS:.c=.o)
 

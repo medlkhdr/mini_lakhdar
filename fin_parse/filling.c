@@ -1,6 +1,5 @@
 #include "../minishell.h"
 
-
 size_t get_all_argscmd(t_token *token)
 {
   size_t count;
@@ -45,23 +44,21 @@ t_redir * add_in_file(t_token *redir , t_token *file , t_redir *head,  t_lst_hk 
   return head;
 }
 
-t_cmd *get_cmd(t_token **t , t_lst_hk *x , t_env *env, char **envp, int *g_exit_status)
+t_cmd *get_cmd(t_token **t , t_lst_hk *x , t_env *env)
 {
   t_token *token;
   size_t count;
   t_cmd *cmd;
   size_t index;
+
   index = 0;
   token = *t;
-
   cmd = ft_malloc(sizeof(t_cmd), x);
   count = get_all_argscmd(token);
   cmd->args = ft_malloc(sizeof(char *) * (count + 2), x);
   cmd->files = NULL;
   cmd->next = NULL;
   cmd->env = &env;
-  cmd->envp = envp;
-  cmd->exit_state = g_exit_status;
   while (token && token->type != PIPE)
   {
     if (is_redir(token) && token->next && token->next->type == WORD)
@@ -78,18 +75,17 @@ t_cmd *get_cmd(t_token **t , t_lst_hk *x , t_env *env, char **envp, int *g_exit_
   return cmd;
 }
 
-t_lst_cmd *fill_struct(t_lst_token *lst_token, t_lst_hk *x , t_env *env, int *g_exit_status)
+t_lst_cmd *fill_struct(t_lst_token *lst_token, t_lst_hk *x , t_env *env)
 {
 	t_lst_cmd *lst_cmds = ft_malloc(sizeof(t_lst_cmd), x);
 	t_token *token = lst_token->head;
 	t_cmd *tail = NULL;
   t_cmd *cmd = NULL;
   lst_cmds->head = NULL;
-  t_env *e = env;
-  char **envp = switchtochar(e);
+
   while (token)
-  {
-    cmd = get_cmd(&token, x, env , envp, g_exit_status);
+	{
+    cmd = get_cmd(&token, x, env);
     if (!lst_cmds->head)
     {
 			lst_cmds->head = cmd;

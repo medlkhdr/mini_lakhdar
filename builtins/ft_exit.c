@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   ft_exit.c                                          :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: feedback <feedback@student.42.fr>          +#+  +:+       +#+        */
+/*   By: mlakhdar <mlakhdar@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/07/01 03:35:36 by med               #+#    #+#             */
-/*   Updated: 2025/07/02 11:56:48 by feedback         ###   ########.fr       */
+/*   Updated: 2025/07/06 21:02:11 by mlakhdar         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -37,20 +37,25 @@ static void	valid_error(char *arg)
 	exit(2);
 }
 
-int	ft_exit(char **av)
+int	ft_exit(t_cmd *cmd)
 {
-	int exit_status = 0;
-	int count = count_word(av);
-	if (av[1])
+	int	exit_status;
+	int	count;
+
+	count = arg_count(cmd->args);
+	exit_status = 0;
+	if(count == 1)
+		exit(*cmd->exit_status);
+	if (count > 2)
 	{
-		if (!is_valid_number(av[1]))
-			valid_error(av[1]);
-		exit_status = ft_atoi(av[1]);
-		if (count > 2)
-		{
-			ft_printf(2, "minishell: exit: too many arguments\n");
-			return (1);
-		}
+		ft_printf(2, "exit\nbash: exit: too many arguments\n");
+		return (1);
+	}
+	if (cmd->args[1])
+	{
+		if (!is_valid_number(cmd->args[1]))
+			valid_error(cmd->args[1]);
+		exit_status = ft_atoi(cmd->args[1]);
   }
 	exit(exit_status);
 }

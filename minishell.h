@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   minishell.h                                        :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: mlakhdar <mlakhdar@student.42.fr>          +#+  +:+       +#+        */
+/*   By: med <med@student.42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/30 14:38:27 by mlakhdar          #+#    #+#             */
-/*   Updated: 2025/07/05 14:27:48 by mlakhdar         ###   ########.fr       */
+/*   Updated: 2025/07/06 17:37:49 by med              ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -17,7 +17,6 @@
 /*                        INCLUDE LIBRARIES                    */
 /* ─────────────────────────────────────────────────────────── */
 
-# include "libft/ft_printf.h"
 # include "libft/libft.h"
 # include <readline/history.h>
 # include <readline/readline.h>
@@ -27,13 +26,16 @@
 # include <string.h>
 # include <signal.h>
 # include <errno.h>
-
+#include <sys/types.h>
+#include <sys/wait.h>
+# define READ_END 0
+# define WRITE_END 1
 
 /* ─────────────────────────────────────────────────────────── */
 /*                       MEMORY MANAGER (GC)                   */
 /* ─────────────────────────────────────────────────────────── */
 
-extern int g_exit_status;
+extern int g_es;
 
 typedef struct s_housekept
 {
@@ -69,7 +71,7 @@ typedef struct s_redir
 {
 	char				*files;
 	t_redirct			index;
-	int fd;
+	int 				fd;
 	struct s_redir		*next;
 }						t_redir;
 
@@ -77,10 +79,10 @@ typedef struct s_cmd
 {
 	char				**args;
 	t_redir				*files;
-	t_env **env;
-	char **envp;
-	int *exit_state;
-	int fds[2];
+	t_env 				**env;
+	char 				**envp;
+	int					*exit_status;
+	int					fd[2];
 	struct s_cmd *next;
 }						t_cmd;
 
@@ -188,36 +190,46 @@ void					print_lst(t_lst_token *ltoken);
 /*                          PARSING                            */
 /* ─────────────────────────────────────────────────────────── */
 
-t_lst_cmd				*parsing(char *input , t_env *env, int *g_exit_status);
-t_lst_cmd				*fill_struct(t_lst_token *lst_token, t_lst_hk *x , t_env *env, int *g_exit_status);
+t_lst_cmd				*parsing(char *input , t_env *env,int *g_es);
+t_lst_cmd				*fill_struct(t_lst_token *lst_token, t_lst_hk *x , t_env *env);
 
 /* ─────────────────────────────────────────────────────────── */
 /*                          EXECUTION                          */
 /* ─────────────────────────────────────────────────────────── */
 
-/* Built-ins */
-int						ft_cd(t_cmd *cmd);
-int						ft_pwd(void);
-int						ft_echo(char **av);
-int						ft_env(t_env *env);
-int						ft_export(t_cmd *cmd);
-int ft_unset(t_cmd *cmd);
-int ft_exit(char **args);
+/* utiles_simo */
+int		addback_node(t_env **head, char *av);
+void	free_env_list(t_env *head);
+t_env	*get_env(char **env);
+char 	*get_value(t_env *env, char *key);
+char	*back_home(t_env *env);
+void	update_val(t_env *env, char *key, char *new_val);
+char 	*resolve_cd_target(t_cmd *cmd);
+char 	*cd_to_path(t_cmd *cmd, char *oldpwd);
+int		arg_count(char **av);
+int 	is_valid_identifier(char *name);
+int		is_builtin(char *cmd);
+int		execute_builtin(t_cmd *cmd);
+void	free_array(char **array);
+char	*strjoin_val_path(char *s1, char *s2, int flag);
+char	**env_tochar(t_env *env);
 
-/* Environment utils */
-char					*dup_key(char *arg);
-char					*dup_value(char *arg);
-int execute_builtin(t_cmd *cmd);
-int is_builtin(char *cmd);
-void print_cmd_list(t_lst_cmd *cmd_list);
-// t_env					*create_list(char **env);
-// int						addback_node(t_env **head, char *av);
-// void					free_env_list(t_env *head);
-t_env *get_env(int ac, char **av, char **env);
-int count_word(char **str);
+/* builtins */
+int	ft_cd(t_cmd *cmd);
+int	ft_env(t_cmd *cmd);
+int	ft_pwd(void);
+int	ft_exit(t_cmd *cmd);
+int	ft_echo(t_cmd *cmd);
+int	ft_export(t_cmd *cmd);
+int	ft_unset(t_cmd *cmd);
+/* redtrections */
+int		open_file(t_redir *redir, t_redirct mode);
+int 	redirect_fd(int fd, int std_fd);
+int 	setup_redirections(t_redir *list);
+void	close_redirs(t_redir *list);
+/* execute command */
+void	execute_command(t_cmd *cmd);
+void	execute_pipeline(t_cmd *cmd);
 
-void excute_commands(t_cmd *cmds);
 
-// utiles
-char **switchtochar(t_env *env);
 #endif
