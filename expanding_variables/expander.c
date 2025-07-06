@@ -6,7 +6,7 @@
 /*   By: mlakhdar <mlakhdar@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/30 14:07:48 by mlakhdar          #+#    #+#             */
-/*   Updated: 2025/07/03 20:49:16 by mlakhdar         ###   ########.fr       */
+/*   Updated: 2025/07/06 18:11:13 by mlakhdar         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -39,7 +39,6 @@ static void	handle_dollar(char *str, t_exstrct *q, t_lst_hk *x , t_env *env  , i
 	else
 		q->res = ft_join(q->res, ft_strdump("$", x), x);
 }
-
 static void	constr(t_exstrct *q, t_lst_hk *x)
 {
 	q->i = 0;

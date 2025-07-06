@@ -13,6 +13,9 @@ char *join_path(const char *dir, const char *cmd)
 
   if (!full)
 		return (NULL);
+			strcpy(full, dir);
+	full[strlen(dir)] = '/';          // insert the slash
+	strcpy(full + strlen(dir) + 1, cmd);
 	return (full);
 }
 
@@ -150,6 +153,20 @@ void excute_commands(t_cmd *cmds)
 		ft_export(cmd);
 	else if(strcmp(cmd->args[0] , "env") == 0)
 		ft_env(*cmd->env);
+	else if(strcmp(cmd->args[0] , "cd") == 0)
+		ft_cd(cmd);
+	else
+	{
+		pid_t pid = fork();
+		if(pid == 0)
+		{
+			char *path = get_cmd_path(cmd->args[0], cmd->envp);
+			execve(path, cmd->args, cmd->envp);
+		}
+		else
+			wait(NULL);
+	}
+
 	dup2(cmd->fds[0], STDIN_FILENO);
 	dup2(cmd->fds[1], STDOUT_FILENO);
 	close(cmd->fds[0]);
